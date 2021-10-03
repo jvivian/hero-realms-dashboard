@@ -7,7 +7,7 @@ dependencies:
   - pandas=1.2.5
   - altair
   - streamlit=0.87.0
-  - openpyxl
+  - openpyxl=3.0.9
   - pip
   - pip:
       - streamlit-lottie
