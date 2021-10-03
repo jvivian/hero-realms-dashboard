@@ -34,7 +34,7 @@ st.markdown(
 )
 
 SHEET_ID = '1DU1JpW27oOWjhTijTSW2tBGyMjHGioCW_E8V1syhAkE'
-SHEET_NAME = 'Game Records'.replace(' ', '%20')
+SHEET_NAME = 'Game Records'
 URL = f'https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet={SHEET_NAME}'
 
 
@@ -54,12 +54,12 @@ def center_text(text, size='h1', container=None):
 
 
 @st.cache
-def get_data():
-    df = pd.read_csv(URL).iloc[:, :10]
+def get_data(url):
+    df = pd.read_csv(url).iloc[:, :10]
     cols = ['opponent_name', 'opponent_class', 'opponent_level', 'opponent_hp']
-    cols += ['tim_class', 'tim_level', 'tim_hp', 'starting_turn', 'turns', 'tim_won']  # , 'beta']
+    cols += ['self_class', 'self_level', 'self_hp', 'starting_turn', 'turns', 'won']  # , 'beta']
     df.columns = cols
-    df['tim_won'] = df.tim_won.astype(bool)
+    df['won'] = df.won.astype(bool)
     df['starting_turn'] = ['Went First' if x == 1 else 'Went Second' for x in df.starting_turn]
     return df.dropna()
 
@@ -69,8 +69,10 @@ def banner(df):
     with c1:
         st_lottie(load_lottieurl('https://assets10.lottiefiles.com/packages/lf20_z9ed2jna.json'), height=150)
     with c2:
-        center_text("Tim's Fabulous Hero Realms Dashboard")
-        text = f"{len(df)} Games - {len(df[df.tim_won == True])} Wins"
+        center_text("Hero Realms Dashboard")
+        num_wins = len(df[df.won == True])
+        perc = round(num_wins / len(df), 1) * 100
+        text = f"{len(df)} Games - {len(df[df.won == True])} Wins - {perc}%"
         center_text(text, size='h2')
 
         with c3:
@@ -78,37 +80,37 @@ def banner(df):
 
 
 def class_summary_plot(df):
-    games_played = df.groupby('tim_class').opponent_class.value_counts().reset_index(name='Games Played')
-    games_won = df.groupby(['tim_class', 'opponent_class']).tim_won.sum().reset_index(name='Games Won')
+    games_played = df.groupby('self_class').opponent_class.value_counts().reset_index(name='Games Played')
+    games_won = df.groupby(['self_class', 'opponent_class']).won.sum().reset_index(name='Games Won')
     data = games_played.merge(games_won)
     data['Win Percentage'] = round(data['Games Won'] / data['Games Played'] * 100, 2)
-    data = data.rename({'tim_class': "Tim", 'opponent_class': 'Opponent'}, axis='columns')
-    return alt.Chart(data).mark_circle().encode(
+    data = data.rename({'self_class': "My Hero", 'opponent_class': 'Opponent'}, axis='columns')
+    return alt.Chart(data).mark_circle(opacity=0.5).encode(
         alt.X('Games Played', title='Games Played'),
-        alt.Y('Tim:N'),
+        alt.Y('My Hero:N'),
         color='Opponent:N',
         size='Win Percentage',
-        tooltip=['Tim', 'Opponent', 'Win Percentage', 'Games Played']
+        tooltip=['My Hero', 'Opponent', 'Win Percentage', 'Games Played']
     ).properties(height=250)
 
 
 def class_stats(df, class_select, level_range, opponent_class=None):
     sub = (df
-        .loc[df.tim_class == class_select]
-        .loc[lambda x: level_range[0] <= x.tim_level]
-        .loc[lambda x: x.tim_level <= level_range[1]]
+        .loc[df.self_class == class_select]
+        .loc[lambda x: level_range[0] <= x.self_level]
+        .loc[lambda x: x.self_level <= level_range[1]]
         )
     sub = sub[sub.opponent_class == opponent_class] if opponent_class else sub
     if opponent_class:
-        center_text(f"Vs {opponent_class} - {len(sub)} Games - {len(sub[sub.tim_won == True])} Wins")
+        center_text(f"Vs {opponent_class} - {len(sub)} Games - {len(sub[sub.won == True])} Wins")
     else:
-        center_text(f"{class_select} Stats - {len(sub)} Games - {len(sub[sub.tim_won == True])} Wins")
+        center_text(f"{class_select} Stats - {len(sub)} Games - {len(sub[sub.won == True])} Wins")
     c1, c2 = st.columns([1, 1])
 
     # Total WIN %age when going first/second
     chart = alt.Chart(sub).transform_aggregate(
         count='count()',
-        groupby=['tim_won', 'starting_turn']
+        groupby=['won', 'starting_turn']
     ).transform_joinaggregate(
         total='sum(count)',
         groupby=['starting_turn']
@@ -117,7 +119,7 @@ def class_stats(df, class_select, level_range, opponent_class=None):
     ).mark_bar().encode(
         x=alt.X("starting_turn:N", title='Starting Turn'),
         y=alt.Y('count:Q', stack="normalize", axis=alt.Axis(title="Percentage", format="%")),
-        color=alt.Color('tim_won:N', title='Tim Won',
+        color=alt.Color('won:N', title='I Won',
                         scale=alt.Scale(domain=[True, False], range=['#1696d2', '#d2d2d2'])),
         tooltip=[
             alt.Tooltip('count:Q', title="Games"),
@@ -130,78 +132,87 @@ def class_stats(df, class_select, level_range, opponent_class=None):
     chart = alt.Chart(sub).mark_boxplot().encode(
         alt.X('turns:Q', title='Number of Turns'),
         alt.Y('starting_turn:N', title='Starting Turn'),
-        color=alt.Color('starting_turn:N', title='Starting Turn')
+        color=alt.Color('starting_turn:N', title='Starting Turn', legend=None)
     )
     c2.altair_chart(chart, use_container_width=True)
 
 
 def level_plot(df, as_class):
     center_text(f'Win Rate by Level - {as_class}')
-    df = df[df.tim_class == as_class] if as_class else df
+    df = df[df.self_class == as_class] if as_class else df
     perc = (df
-            .groupby(['tim_level', 'opponent_class'])
-            .tim_won
-            .value_counts(normalize=True)
+            .groupby(['self_level', 'opponent_class'])
+            .won.value_counts(normalize=True)
             .rename('Win Percentage')
             )
     counts = (df
-              .groupby(['tim_level', 'opponent_class'])
-              .tim_won
-              .value_counts()
+              .groupby(['self_level', 'opponent_class'])
+              .won.value_counts()
               .rename('Games Won')
               )
-    cat = pd.concat([perc, counts], axis=1).reset_index().loc[lambda x: x.tim_won == True]
+    cat = pd.concat([perc, counts], axis=1).reset_index().loc[lambda x: x.won == True]
     line = alt.Chart(cat).mark_line().encode(
-        alt.X('tim_level:N', title="Tim's Level"),
+        alt.X('self_level:N', title="My Level"),
         alt.Y('Win Percentage', axis=alt.Axis(title="Win Percentage", format="%")),
-        #alt.Color('opponent_class', title='Opponent')
     ).facet(column=alt.Y('opponent_class', title='Opponent'))
-    dot = alt.Chart(cat).mark_circle().encode(
-        alt.X('tim_level:N', title="Tim's Level"),
-        alt.Y('Win Percentage', title='Win Percentage'),
-        alt.Color('opponent_class', title='Opponent'),
-        size='Games Won',
-        tooltip=['Win Percentage', 'Games Won']
-    )
+    # dot = alt.Chart(cat).mark_circle().encode(
+    #     alt.X('self_level:N', title="My Level"),
+    #     alt.Y('Win Percentage', title='Win Percentage'),
+    #     alt.Color('opponent_class', title='Opponent'),
+    #     size='Games Won',
+    #     tooltip=['Win Percentage', 'Games Won']
+    # )
     st.altair_chart(line, use_container_width=True)
 
 
 def main():
-    df = get_data()
+    # Get Google Sheet ID
+    id_container = st.empty()
+    form = id_container.form(key='my_form')
+    sheet_id = form.text_input(label='Enter ID of Hero Realms Spreadsheet', value=SHEET_ID)
+    sheet_name = form.text_input(label='Enter sheet name', value=SHEET_NAME).replace(' ', '%20')
+    submit = form.form_submit_button(label='Submit')
+    if not submit:
+        st.stop()
+
+    # Fetch data and display banner
+    id_container.empty()
+    url = f'https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}'
+    df = get_data(url)
     banner(df)
+
+    # Class Summary Plot
     st.altair_chart(class_summary_plot(df), use_container_width=True)
 
     # Class Stats
-    class_select = st.sidebar.selectbox('Class', sorted(df.tim_class.unique()), index=1)
-    lvl_max = int(df.tim_level.max()) + 1
+    class_select = st.sidebar.selectbox('Class', sorted(df.self_class.unique()), index=1)
+    lvl_max = int(df.self_level.max()) + 1
     level_range = st.sidebar.slider('Level Range', 1, lvl_max, (1, lvl_max))
     class_stats(df, class_select, level_range)
     opponent_class_select = st.sidebar.selectbox('Opponent Class', sorted(df.opponent_class.unique()), index=4)
     class_stats(df, class_select, level_range, opponent_class_select)
 
-    # Level Plot
-    # level_plot(df, as_class=class_select)
-
-    # Univariate
+    # Univariates
     center_text("Misc. Univariate Distributions")
-    g = df.groupby(['tim_won', 'starting_turn', 'tim_class', 'opponent_class']).agg({
+    g = df.groupby(['won', 'starting_turn', 'self_class', 'opponent_class']).agg({
         'opponent_level': 'mean',
         'opponent_hp': 'mean',
-        'tim_hp': 'mean',
+        'self_hp': 'mean',
         'turns': 'mean'
 
     }).reset_index()
-    cols = ['opponent_hp', 'turns', 'opponent_level', 'tim_hp']
-    names = ['Opponent Health', 'Num Turns', 'Opponent Level', 'Tims Health']
+    cols = ['opponent_hp', 'turns', 'opponent_level', 'self_hp']
+    names = ['Opponent Health', 'Num Turns', 'Opponent Level', 'My Health']
     for name, col in zip(names, cols):
         with st.expander(name, expanded=False):
             chart = alt.Chart(df).mark_boxplot().encode(
-                y='tim_class:N',
+                y='self_class:N',
                 x=f'{col}:Q',
-                color='tim_class:N'
-            ).properties(width=150).facet(column='opponent_class', row='tim_won')
+                color='self_class:N'
+            ).properties(width=150).facet(column='opponent_class', row='won')
             st.altair_chart(chart, use_container_width=True)
 
+    # Raw data
     with st.expander('Raw Data'):
         st.dataframe(df)
         st.markdown(
@@ -210,12 +221,12 @@ def main():
             - B: Other player's class
             - C: Other player's level
             - D: Other player's ending HP
-            - E: Tim's class
-            - F: Tim's level
-            - G: Tim's ending HP
-            - H: Did Tim go first?
+            - E: My class
+            - F: My level
+            - G: My ending HP
+            - H: Did I go first?
             - I: Num turns
-            - J: Did Tim win?
+            - J: Did I win?
             """)
 
 
