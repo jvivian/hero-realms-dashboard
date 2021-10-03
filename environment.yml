@@ -1,0 +1,14 @@
+name: hero-realms
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7
+  - pandas=1.2.5
+  - altair
+  - streamlit=0.87.0
+  - openpyxl
+  - pip
+  - pip:
+      - streamlit-lottie
+      - black
