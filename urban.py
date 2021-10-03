@@ -1,16 +1,24 @@
+"""
+ * Cleric: ffc414 
+ * Fighter: c60314 
+ * Ranger: 209a29
+ * Thief: 2d3ab1
+ * Wizard: 822f96
+"""
+
 def urban_theme():
-    markColor = "#1696d2"
+    markColor = "#ffc414"
     axisColor = "#000000"
     backgroundColor = "#FFFFFF"
     font = "Lato"
     labelFont = "Lato"
     sourceFont = "Lato"
     gridColor = "#DEDDDD"
-    main_palette = ["#1696d2",
-                    "#d2d2d2",
-                    "#000000",
-                    "#fdbf11",
-                    "#ec008b",
+    main_palette = ["#ffc414",
+                    "#c60314",
+                    "#209a29",
+                    "#2d3ab1",
+                    "#822f96",
                     "#55b748",
                     "#5c5859",
                     "#db2b27",
@@ -19,7 +27,7 @@ def urban_theme():
                           "#a2d4ec",
                           "#73bfe2",
                           "#46abdb",
-                          "#1696d2",
+                          "#ffc414",
                           "#12719e",
                           ]
     return {
