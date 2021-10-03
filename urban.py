@@ -80,7 +80,7 @@ def urban_theme():
                 "labelFontSize": 12,
                 "labelFont": labelFont,
                 "symbolSize": 100,
-                "symbolType": "square",
+                # "symbolType": "square",
                 "titleFontSize": 12,
                 "titlePadding": 10,
                 "titleFont": font,
