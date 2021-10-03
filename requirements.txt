@@ -55,7 +55,7 @@ nest-asyncio==1.5.1
 notebook==6.4.3
 numpy==1.21.2
 olefile==0.46
-openpyxl==3.0.9
+openpyxl==3.0.8
 packaging==21.0
 pandas==1.2.5
 pandocfilters==1.4.2
@@ -89,7 +89,7 @@ Send2Trash==1.8.0
 setuptools==58.0.4
 six==1.16.0
 smmap==3.0.5
-streamlit==0.87.0
+streamlit==0.89.0
 streamlit-lottie==0.0.2
 terminado==0.12.1
 testpath==0.5.0
