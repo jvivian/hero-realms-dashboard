@@ -52,7 +52,7 @@ def center_text(text, size="h1", container=None):
         return container.markdown(txt, unsafe_allow_html=True)
 
 
-@st.cache
+# @st.cache
 def get_data(url):
     df = pd.read_csv(url).iloc[:, :10]
     cols = ["opponent_name", "opponent_class", "opponent_level", "opponent_hp"]
@@ -63,7 +63,7 @@ def get_data(url):
         "starting_turn",
         "turns",
         "won",
-    ]  # , 'beta']
+    ]
     df.columns = cols
     df["won"] = df.won.astype(bool)
     df["starting_turn"] = [
