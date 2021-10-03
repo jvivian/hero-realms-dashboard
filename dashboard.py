@@ -127,7 +127,9 @@ def class_summary_plot(df):
     )
 
 
-def class_stats(df, class_select, level_range, opponent_class=None):
+def class_stats(
+    df: object, class_select: object, level_range: object, opponent_class: object = None
+) -> object:
     sub = (
         df.loc[df.self_class == class_select]
         .loc[lambda x: level_range[0] <= x.self_level]
@@ -217,39 +219,35 @@ def level_plot(df, as_class):
     st.altair_chart(line, use_container_width=True)
 
 
-def main():
-    # Get Google Sheet ID
-    id_container = st.empty()
-    form = id_container.form(key="my_form")
-    sheet_id = form.text_input(
-        label="Enter ID of Hero Realms Spreadsheet", value=SHEET_ID
-    )
-    sheet_name = form.text_input(label="Enter sheet name", value=SHEET_NAME).replace(
-        " ", "%20"
-    )
-    submit = form.form_submit_button(label="Submit")
-    if not submit:
-        st.stop()
+def get_form_info():
+    with st.expander("Data Configuration"):
+        with st.form(key="Submit Form"):
+            sheet_id = st.text_input(
+                label="Enter ID of Hero Realms Spreadsheet", value=SHEET_ID
+            )
+            sheet_name = st.text_input(
+                label="Enter sheet name", value=SHEET_NAME
+            ).replace(" ", "%20")
+            url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
+            df = get_data(url)
+            my_class = st.selectbox("Class", sorted(df.self_class.unique()), index=1)
+            lvl_max = int(df.self_level.max()) + 1
+            level_range = st.slider("Level Range", 1, lvl_max, (1, lvl_max))
+            opponent_class = st.selectbox(
+                "Opponent Class", sorted(df.opponent_class.unique()), index=4
+            )
+            st.form_submit_button(label="Submit")
+    return df, my_class, level_range, opponent_class
 
-    # Fetch data and display banner
-    id_container.empty()
-    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
-    df = get_data(url)
+
+def main():
+    # Get data
+    df, class_select, level_range, opponent_class_select = get_form_info()
     banner(df)
 
-    # Class Summary Plot
+    # Main Plots
     st.altair_chart(class_summary_plot(df), use_container_width=True)
-
-    # Class Stats
-    class_select = st.sidebar.selectbox(
-        "Class", sorted(df.self_class.unique()), index=1
-    )
-    lvl_max = int(df.self_level.max()) + 1
-    level_range = st.sidebar.slider("Level Range", 1, lvl_max, (1, lvl_max))
     class_stats(df, class_select, level_range)
-    opponent_class_select = st.sidebar.selectbox(
-        "Opponent Class", sorted(df.opponent_class.unique()), index=4
-    )
     class_stats(df, class_select, level_range, opponent_class_select)
 
     # Univariates
