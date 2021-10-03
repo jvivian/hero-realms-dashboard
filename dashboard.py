@@ -115,7 +115,7 @@ def class_summary_plot(df):
     )
     return (
         alt.Chart(data)
-        .mark_circle(opacity=0.5)
+        .mark_circle(opacity=0.9)
         .encode(
             alt.X("Games Played", title="Games Played"),
             alt.Y("My Hero:N"),
