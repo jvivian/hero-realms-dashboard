@@ -6,6 +6,7 @@
  * Wizard: 822f96
 """
 
+
 def urban_theme():
     markColor = "#ffc414"
     axisColor = "#000000"
@@ -14,22 +15,24 @@ def urban_theme():
     labelFont = "Lato"
     sourceFont = "Lato"
     gridColor = "#DEDDDD"
-    main_palette = ["#ffc414",
-                    "#c60314",
-                    "#209a29",
-                    "#2d3ab1",
-                    "#822f96",
-                    "#55b748",
-                    "#5c5859",
-                    "#db2b27",
-                    ]
-    sequential_palette = ["#cfe8f3",
-                          "#a2d4ec",
-                          "#73bfe2",
-                          "#46abdb",
-                          "#ffc414",
-                          "#12719e",
-                          ]
+    main_palette = [
+        "#ffc414",
+        "#c60314",
+        "#209a29",
+        "#2d3ab1",
+        "#822f96",
+        "#55b748",
+        "#5c5859",
+        "#db2b27",
+    ]
+    sequential_palette = [
+        "#cfe8f3",
+        "#a2d4ec",
+        "#73bfe2",
+        "#46abdb",
+        "#ffc414",
+        "#12719e",
+    ]
     return {
         "width": 685,
         "height": 380,
@@ -39,7 +42,7 @@ def urban_theme():
                 "anchor": "start",
                 "fontSize": 18,
                 "font": font,
-                "fontColor": "#000000"
+                "fontColor": "#000000",
             },
             "axisX": {
                 "domain": True,
@@ -81,9 +84,9 @@ def urban_theme():
                 "titleFontSize": 12,
                 "titlePadding": 10,
                 "titleFont": font,
-                #"title": "",
-                #"orient": "top-left",
-                #"offset": 0,
+                # "title": "",
+                # "orient": "top-left",
+                # "offset": 0,
             },
             "view": {
                 "stroke": "transparent",
